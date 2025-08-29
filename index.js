@@ -20,20 +20,22 @@ connectDB().then(() => console.log("MongoDB connected ✅"))
            .catch(err => console.error("DB connection error:", err));
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  cors:"https://combo-retail-gtlse3r7s-shravan-kumars-projects-eeb86419.vercel.app/"
+}));
 app.use(express.json());
 
 // Routes
-app.use("/users", userRoutes);
-app.use("/products", productRoutes);
-app.use("/partCategories", partCategoryRoutes);
-app.use("/deviceCategories", deviceCategoryRoutes);
-app.use("/brands", brandRoutes);
-app.use("/models", modelRoutes);
-app.use("/", searchRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/partCategories", partCategoryRoutes);
+app.use("/api/deviceCategories", deviceCategoryRoutes);
+app.use("/api/brands", brandRoutes);
+app.use("/api/models", modelRoutes);
+app.use("/api/", searchRoutes);
 
 // Test routes
-app.get("/test", (req, res) => {
+app.get("/api/test", (req, res) => {
   res.json({ message: "API is working ✅" });
 });
 
