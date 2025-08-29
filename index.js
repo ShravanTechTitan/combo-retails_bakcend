@@ -1,5 +1,4 @@
 import express from "express";
-import serverless from "serverless-http";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./src/config/db.js";
@@ -16,21 +15,25 @@ dotenv.config();
 
 const app = express();
 
+// Connect to DB once
+connectDB().then(() => console.log("MongoDB connected ✅"))
+           .catch(err => console.error("DB connection error:", err));
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/users", async (req, res, next) => { await connectDB(); next(); }, userRoutes);
-app.use("/products", async (req, res, next) => { await connectDB(); next(); }, productRoutes);
-app.use("/partCategories", async (req, res, next) => { await connectDB(); next(); }, partCategoryRoutes);
-app.use("/deviceCategories", async (req, res, next) => { await connectDB(); next(); }, deviceCategoryRoutes);
-app.use("/brands", async (req, res, next) => { await connectDB(); next(); }, brandRoutes);
-app.use("/models", async (req, res, next) => { await connectDB(); next(); }, modelRoutes);
-app.use("/", async (req, res, next) => { await connectDB(); next(); }, searchRoutes);
+app.use("/users", userRoutes);
+app.use("/products", productRoutes);
+app.use("/partCategories", partCategoryRoutes);
+app.use("/deviceCategories", deviceCategoryRoutes);
+app.use("/brands", brandRoutes);
+app.use("/models", modelRoutes);
+app.use("/", searchRoutes);
 
-app.get("/test", async (req, res) => {
-  await connectDB();
+// Test routes
+app.get("/test", (req, res) => {
   res.json({ message: "API is working ✅" });
 });
 
@@ -38,4 +41,6 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-export default serverless(app);
+// Listen on Railway's port
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Server running on port ${PORT} 🚀`));
