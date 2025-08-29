@@ -32,6 +32,12 @@ app.use("/api/brands", brandRoutes);
 app.use("/api/models", modelRoutes);
 app.use("/api", searchRoutes);
 
+
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API is working ✅" });
+});
+
+
 // Optional root route
 app.get("/", (req, res) => {
   res.send("API is running...");
