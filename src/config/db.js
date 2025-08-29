@@ -1,15 +1,21 @@
+//src/config/db.js
+
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      // Only for local dev if TLS errors happen
+      tls: true,
+      tlsAllowInvalidCertificates: true,
     });
-
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
+    console.log("MongoDB connected ✅");
+  } catch (err) {
+    console.error("MongoDB connection failed ❌", err);
     process.exit(1);
   }
 };

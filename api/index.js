@@ -24,13 +24,13 @@ app.use(express.json());
 connectDB();
 
 // Routes
-app.use("/api/users", userRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/partCategories", partCategoryRoutes);
-app.use("/api/deviceCategories", deviceCategoryRoutes);
-app.use("/api/brands", brandRoutes);
-app.use("/api/models", modelRoutes);
-app.use("/api", searchRoutes);
+app.use("/users", userRoutes);
+app.use("/products", productRoutes);
+app.use("/partCategories", partCategoryRoutes);
+app.use("/deviceCategories", deviceCategoryRoutes);
+app.use("/brands", brandRoutes);
+app.use("/models", modelRoutes);
+app.use("/", searchRoutes);
 
 
 app.get("/api/test", (req, res) => {
@@ -42,7 +42,7 @@ app.get("/api/test", (req, res) => {
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
-
+const serverlessHandler = serverless(app);
 // Export for Vercel
-export const handler = serverless(app);
+export default serverlessHandler;
  
