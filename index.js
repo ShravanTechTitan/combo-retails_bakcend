@@ -1,4 +1,3 @@
-// api/index.js
 import express from "express";
 import serverless from "serverless-http";
 import dotenv from "dotenv";
@@ -44,5 +43,5 @@ app.get("/", (req, res) => {
 });
 
 // Export for Vercel
-export default serverless(app);
+export const handler = serverless(app);
  
