@@ -1,22 +1,22 @@
-//src/config/db.js
-
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-dotenv.config();
+
+let isConnected = null; // cache the connection across function calls
 
 const connectDB = async () => {
+  if (isConnected) {
+    return; // already connected
+  }
+
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
+    const db = await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      // Only for local dev if TLS errors happen
-      tls: true,
-      tlsAllowInvalidCertificates: true,
     });
+    isConnected = db.connections[0].readyState;
     console.log("MongoDB connected ✅");
   } catch (err) {
     console.error("MongoDB connection failed ❌", err);
-    process.exit(1);
+    throw err;
   }
 };
 
