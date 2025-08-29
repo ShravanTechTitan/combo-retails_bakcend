@@ -3,14 +3,14 @@ import express from "express";
 import serverless from "serverless-http";
 import dotenv from "dotenv";
 import cors from "cors";
-import connectDB from "../src/config/db.js";
-import userRoutes from "../src/routes/user.js";
-import productRoutes from "../src/routes/productRoutes.js";
-import partCategoryRoutes from "../src/routes/partCategoryRoutes.js";
-import deviceCategoryRoutes from "../src/routes/deviceCategoryRoutes.js";
-import brandRoutes from "../src/routes/brandRoutes.js";
-import modelRoutes from "../src/routes/modelRoutes.js";
-import searchRoutes from "../src/routes/search.js";
+import connectDB from "./src/config/db.js";
+import userRoutes from "./src/routes/user.js";
+import productRoutes from "./src/routes/productRoutes.js";
+import partCategoryRoutes from "./src/routes/partCategoryRoutes.js";
+import deviceCategoryRoutes from "./src/routes/deviceCategoryRoutes.js";
+import brandRoutes from "./src/routes/brandRoutes.js";
+import modelRoutes from "./src/routes/modelRoutes.js";
+import searchRoutes from "./src/routes/search.js";
 
 dotenv.config();
 
