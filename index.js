@@ -21,7 +21,7 @@ connectDB().then(() => console.log("MongoDB connected ✅"))
 
 // Middlewares
 app.use(cors({
-  cors:"https://combo-retail-gtlse3r7s-shravan-kumars-projects-eeb86419.vercel.app"
+  cors:"https://www.universalcombo.com"
 }));
 app.use(express.json());
 
