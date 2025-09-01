@@ -10,6 +10,8 @@ import deviceCategoryRoutes from "./src/routes/deviceCategoryRoutes.js";
 import brandRoutes from "./src/routes/brandRoutes.js";
 import modelRoutes from "./src/routes/modelRoutes.js";
 import searchRoutes from "./src/routes/search.js";
+import adminRoutes from "./src/routes/adminRoutes.js";
+
 
 dotenv.config();
 
@@ -33,6 +35,7 @@ app.use("/api/deviceCategories", deviceCategoryRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/models", modelRoutes);
 app.use("/api/", searchRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Test routes
 app.get("/api/test", (req, res) => {
