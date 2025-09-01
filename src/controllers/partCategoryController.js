@@ -9,6 +9,17 @@ export const createCategory = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+// get category by Id
+export const getCategoryById = async (req, res) => {
+  try {
+    const category = await PartCategory.findById(req.params.id);
+    if (!category) return res.status(404).json({ message: "Not found" });
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 // Read (All)
 export const getCategories = async (req, res) => {
