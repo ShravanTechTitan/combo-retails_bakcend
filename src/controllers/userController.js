@@ -50,3 +50,43 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+const otpStore = {}; // Temporary in-memory store
+
+export const sendOtp = (req, res) => {
+  const {email }= req.body.email;
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ message: "Valid email required" });
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  otpStore[email] = otp;
+  console.log(`OTP for ${email}: ${otp}`);
+  res.json({ message: "OTP sent" });
+};
+
+
+export const verifyOtp = (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) return res.status(400).json({ message: "Email & OTP required" });
+
+  if (otpStore[email] && otpStore[email] === Number(otp)) {
+    delete otpStore[email]; // remove OTP after successful verification
+    res.json({ message: "OTP verified" });
+  } else {
+    res.status(400).json({ message: "Invalid OTP" });
+  }
+};
+
+export const resetPassword = (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  // Validate OTP
+  if (otpStore[email] !== Number(otp)) {
+    return res.status(400).json({ message: "Invalid OTP" });
+  }
+  // Update password in DB
+  User.findOneAndUpdate({ email }, { password: hashPassword(newPassword) })
+    .then(() => res.json({ message: "Password reset successful" }))
+    .catch((err) => res.status(500).json({ message: err.message }));
+};
+
