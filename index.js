@@ -9,7 +9,7 @@ import partCategoryRoutes from "./src/routes/partCategoryRoutes.js";
 import deviceCategoryRoutes from "./src/routes/deviceCategoryRoutes.js";
 import brandRoutes from "./src/routes/brandRoutes.js";
 import modelRoutes from "./src/routes/modelRoutes.js";
-import searchRoutes from "./src/routes/search.js";
+import searchRoutes from "./src/routes/searchRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import subscriptionRoutes from "./src/routes/subscriptions.js";
 import userSubscriptionRoutes from "./src/routes/userSubscriptionRoutes.js";
