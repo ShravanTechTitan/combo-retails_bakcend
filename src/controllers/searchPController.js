@@ -9,11 +9,11 @@ export const searchProducts = async (req, res) => {
     const regex = new RegExp(escapedQuery, "i");
 
     // Fetch all products + populate all models
-    let products = await Product.find({})
-      .populate({ path: "modelIds", select: "name" })
-      .populate({ path: "partCategoryId", select: "name" }) // ✅ populate category
-      .limit(50);
-      
+  let products = await Product.find({})
+    .populate({ path: "modelIds", select: "name" })
+    .populate({ path: "partCategoryId", select: "name" }) // ✅ populate category
+    .limit(50);
+    
 
     // Filter products based on name OR model name
     products = products
