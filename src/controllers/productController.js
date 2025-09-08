@@ -3,7 +3,7 @@ import Product from "../models/Product.js";
 //  Create Product
 export const createProduct = async (req, res) => {
   try {
-    const { name, brandIds,modelIds, partCategoryId, price, description } = req.body;
+    const { name, brandIds, modelIds, partCategoryId, price, description, tags } = req.body;
 
     if (!name || !brandIds || !partCategoryId || price == null) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -16,6 +16,7 @@ export const createProduct = async (req, res) => {
       price,
       modelIds,
       description,
+      tags, // ✅ new field
     });
 
     res.status(201).json(product);
@@ -30,7 +31,7 @@ export const getProducts = async (req, res) => {
     const products = await Product.find()
       .populate("brandIds", "name")
       .populate("partCategoryId", "name")
-      .populate("modelIds","name");
+      .populate("modelIds", "name");
 
     res.status(200).json(products);
   } catch (error) {
@@ -38,15 +39,14 @@ export const getProducts = async (req, res) => {
   }
 };
 
-
-// Get Product brandId
+// Get Product by ID
 export const getProductById = async (req, res) => {
-  const { id } = req.params; // ✅ fixed: use req.params
+  const { id } = req.params;
   try {
     const product = await Product.findById(id)
-      .populate("brandIds", "name")        // ✅ match schema
-      .populate("partCategoryId", "name")  // ✅ match schema
-      .populate("modelIds", "name");       // ✅ optional, for models
+      .populate("brandIds", "name")
+      .populate("partCategoryId", "name")
+      .populate("modelIds", "name");
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -59,16 +59,15 @@ export const getProductById = async (req, res) => {
   }
 };
 
-
-// Get Product brandId
+// Get Products by Brand ID
 export const getProductByBrandId = async (req, res) => {
   try {
     const { brandId } = req.params;
 
     const products = await Product.find({ brandIds: brandId })
-      .populate("brandIds", "name")          
-      .populate("partCategoryId", "name")    
-      .populate("modelIds", "name");       
+      .populate("brandIds", "name")
+      .populate("partCategoryId", "name")
+      .populate("modelIds", "name");
 
     if (!products || products.length === 0) {
       return res.status(404).json({ message: "No products found for this brand" });
@@ -79,15 +78,16 @@ export const getProductByBrandId = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// Get Product brandId
+
+// Get Products by Brand + Part Category
 export const getProductByPartCategoryId = async (req, res) => {
   try {
-    const { brandId,partCategoryId } = req.params;
+    const { brandId, partCategoryId } = req.params;
 
-    const products = await Product.find({ brandIds: brandId,partCategoryId:partCategoryId })
-      .populate("brandIds", "name")          
-      .populate("partCategoryId", "name")    
-      .populate("modelIds", "name");       
+    const products = await Product.find({ brandIds: brandId, partCategoryId })
+      .populate("brandIds", "name")
+      .populate("partCategoryId", "name")
+      .populate("modelIds", "name");
 
     if (!products || products.length === 0) {
       return res.status(404).json({ message: "No products found for this brand" });
@@ -98,16 +98,15 @@ export const getProductByPartCategoryId = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 //  Update Product
 export const updateProduct = async (req, res) => {
   try {
-    const { name, brandIds,modelIds, partCategoryId, price, stock, description } = req.body;
+    const { name, brandIds, modelIds, partCategoryId, price, stock, description, tags } = req.body;
 
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      { name, brandIds, partCategoryId,modelIds, price, stock, description },
+      { name, brandIds, partCategoryId, modelIds, price, stock, description, tags }, // ✅ include tags
       { new: true }
     );
 
