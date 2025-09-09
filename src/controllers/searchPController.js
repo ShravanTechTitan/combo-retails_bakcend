@@ -8,14 +8,12 @@ export const searchProducts = async (req, res) => {
     const escapedQuery = escapeRegex(q);
     const regex = new RegExp(escapedQuery, "i");
 
-    // 1️⃣ Pehle check karo agar tags match kare
     let tagMatchedProducts = await Product.find({ tags: { $regex: regex } })
       .populate({ path: "modelIds", select: "name" })
       .populate({ path: "partCategoryId", select: "name" })
       .limit(50);
 
     if (tagMatchedProducts.length > 0) {
-      // Agar tags mile → product + model + category return karo
       let tagSuggestions = [];
       tagMatchedProducts.forEach((p) => {
         p.modelIds.forEach((m) => {
@@ -31,7 +29,6 @@ export const searchProducts = async (req, res) => {
       return res.json(tagSuggestions);
     }
 
-    // 2️⃣ Agar tags match nahi kare → normal product/model/brand search
     let products = await Product.find({})
       .populate({ path: "modelIds", select: "name" })
       .populate({ path: "brandIds", select: "name" })
