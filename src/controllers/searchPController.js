@@ -8,27 +8,31 @@ export const searchProducts = async (req, res) => {
     const escapedQuery = escapeRegex(q);
     const regex = new RegExp(escapedQuery, "i");
 
+    // 1️⃣ Tag matched products
     let tagMatchedProducts = await Product.find({ tags: { $regex: regex } })
-      .populate({ path: "modelIds", select: "name" })
       .populate({ path: "partCategoryId", select: "name" })
       .limit(50);
 
     if (tagMatchedProducts.length > 0) {
       let tagSuggestions = [];
       tagMatchedProducts.forEach((p) => {
-        p.modelIds.forEach((m) => {
+        // Sirf matched tag le lo
+        const matchedTags = p.tags.filter((t) => regex.test(t));
+
+        matchedTags.forEach((tag) => {
           tagSuggestions.push({
-            label: `${p.name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
+            label: `${tag} - ${p.partCategoryId?.name || ""}`,
             productId: p._id,
-            modelId: m._id,
             category: p.partCategoryId?.name || "",
             matchType: "tag",
           });
         });
       });
+
       return res.json(tagSuggestions);
     }
 
+    // 2️⃣ Regular search for name, model, brand
     let products = await Product.find({})
       .populate({ path: "modelIds", select: "name" })
       .populate({ path: "brandIds", select: "name" })
@@ -46,41 +50,42 @@ export const searchProducts = async (req, res) => {
         regex.test(b.name || "")
       );
 
-      if (nameMatch || matchingModels.length > 0 || matchingBrands.length > 0) {
-        if (nameMatch) {
-          p.modelIds.forEach((m) => {
-            suggestions.push({
-              label: `${p.name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
-              productId: p._id,
-              modelId: m._id,
-              category: p.partCategoryId?.name || "",
-              matchType: "name",
-            });
-          });
-        }
-
-        if (matchingBrands.length > 0) {
-          p.modelIds.forEach((m) => {
-            suggestions.push({
-              label: `${matchingBrands[0].name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
-              productId: p._id,
-              modelId: m._id,
-              category: p.partCategoryId?.name || "",
-              matchType: "brand",
-            });
-          });
-        }
-
-        matchingModels.forEach((m) => {
+      // Name match → sab models ke saath
+      if (nameMatch) {
+        p.modelIds.forEach((m) => {
           suggestions.push({
             label: `${p.name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
             productId: p._id,
             modelId: m._id,
             category: p.partCategoryId?.name || "",
-            matchType: "model",
+            matchType: "name",
           });
         });
       }
+
+      // Brand match → sab models ke saath
+      if (matchingBrands.length > 0) {
+        p.modelIds.forEach((m) => {
+          suggestions.push({
+            label: `${matchingBrands[0].name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
+            productId: p._id,
+            modelId: m._id,
+            category: p.partCategoryId?.name || "",
+            matchType: "brand",
+          });
+        });
+      }
+
+      // Model match → sirf matching models
+      matchingModels.forEach((m) => {
+        suggestions.push({
+          label: `${p.name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
+          productId: p._id,
+          modelId: m._id,
+          category: p.partCategoryId?.name || "",
+          matchType: "model",
+        });
+      });
     });
 
     res.json(suggestions);
