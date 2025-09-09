@@ -21,7 +21,7 @@ export const searchProducts = async (req, res) => {
 
         matchedTags.forEach((tag) => {
           tagSuggestions.push({
-            label: `${tag} - ${p.partCategoryId?.name || ""}`,
+            label: `${tag} - Universal ${p.partCategoryId?.name || ""}`,
             productId: p._id,
             category: p.partCategoryId?.name || "",
             matchType: "tag",
@@ -54,7 +54,7 @@ export const searchProducts = async (req, res) => {
       if (nameMatch) {
         p.modelIds.forEach((m) => {
           suggestions.push({
-            label: `${p.name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
+            label: `${p.name || ""} ${m.name || ""} - Universal ${p.partCategoryId?.name || ""}`.trim(),
             productId: p._id,
             modelId: m._id,
             category: p.partCategoryId?.name || "",
@@ -67,7 +67,7 @@ export const searchProducts = async (req, res) => {
       if (matchingBrands.length > 0) {
         p.modelIds.forEach((m) => {
           suggestions.push({
-            label: `${matchingBrands[0].name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
+            label: `${matchingBrands[0].name || ""} ${m.name || ""} - Universal ${p.partCategoryId?.name || ""}`.trim(),
             productId: p._id,
             modelId: m._id,
             category: p.partCategoryId?.name || "",
@@ -79,7 +79,7 @@ export const searchProducts = async (req, res) => {
       // Model match → sirf matching models
       matchingModels.forEach((m) => {
         suggestions.push({
-          label: `${p.name || ""} ${m.name || ""} ${p.partCategoryId?.name || ""}`.trim(),
+          label: `${p.name || ""} ${m.name || ""} - Universal ${p.partCategoryId?.name || ""}`.trim(),
           productId: p._id,
           modelId: m._id,
           category: p.partCategoryId?.name || "",
