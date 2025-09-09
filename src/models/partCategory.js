@@ -7,4 +7,4 @@ const partCategorySchema = new mongoose.Schema({
 
 
 
-export default mongoose.models.PartCategory || mongoose.model("PartCategory", partCategorySchema);
+export default mongoose.model("PartCategory", partCategorySchema);

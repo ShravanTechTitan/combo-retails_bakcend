@@ -13,7 +13,7 @@ import searchRoutes from "./src/routes/searchRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import subscriptionRoutes from "./src/routes/subscriptions.js";
 import userSubscriptionRoutes from "./src/routes/userSubscriptionRoutes.js";
-import sitemapRoutes from "./src/routes/sitemap.js";
+ 
 
 
 dotenv.config();
@@ -41,7 +41,7 @@ app.use("/api/", searchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/user-subscriptions", userSubscriptionRoutes);
-app.use("/", sitemapRoutes);
+
 
 // Test routes
 app.get("/api/test", (req, res) => {
