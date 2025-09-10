@@ -16,7 +16,6 @@ export const searchProducts = async (req, res) => {
     if (tagMatchedProducts.length > 0) {
       let tagSuggestions = [];
       tagMatchedProducts.forEach((p) => {
-        // Sirf matched tag le lo
         const matchedTags = p.tags.filter((t) => regex.test(t));
 
         matchedTags.forEach((tag) => {
@@ -29,7 +28,7 @@ export const searchProducts = async (req, res) => {
         });
       });
 
-      return res.json(tagSuggestions);
+      return res.json(dedupeSuggestions(tagSuggestions));
     }
 
     // 2️⃣ Regular search for name, model, brand
@@ -54,7 +53,9 @@ export const searchProducts = async (req, res) => {
       if (nameMatch) {
         p.modelIds.forEach((m) => {
           suggestions.push({
-            label: `${p.name || ""} ${m.name || ""} - Universal ${p.partCategoryId?.name || ""}`.trim(),
+            label: `${p.name || ""} ${m.name || ""} - Universal ${
+              p.partCategoryId?.name || ""
+            }`.trim(),
             productId: p._id,
             modelId: m._id,
             category: p.partCategoryId?.name || "",
@@ -67,7 +68,9 @@ export const searchProducts = async (req, res) => {
       if (matchingBrands.length > 0) {
         p.modelIds.forEach((m) => {
           suggestions.push({
-            label: `${matchingBrands[0].name || ""} ${m.name || ""} - Universal ${p.partCategoryId?.name || ""}`.trim(),
+            label: `${matchingBrands[0].name || ""} ${m.name || ""} - Universal ${
+              p.partCategoryId?.name || ""
+            }`.trim(),
             productId: p._id,
             modelId: m._id,
             category: p.partCategoryId?.name || "",
@@ -79,7 +82,9 @@ export const searchProducts = async (req, res) => {
       // Model match → sirf matching models
       matchingModels.forEach((m) => {
         suggestions.push({
-          label: `${p.name || ""} ${m.name || ""} - Universal ${p.partCategoryId?.name || ""}`.trim(),
+          label: `${p.name || ""} ${m.name || ""} - Universal ${
+            p.partCategoryId?.name || ""
+          }`.trim(),
           productId: p._id,
           modelId: m._id,
           category: p.partCategoryId?.name || "",
@@ -88,14 +93,26 @@ export const searchProducts = async (req, res) => {
       });
     });
 
-    res.json(suggestions);
+    res.json(dedupeSuggestions(suggestions));
   } catch (error) {
     console.error("Search error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
 
-// Utility to escape regex special chars
+// ✅ Utility: escape regex special chars
 function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// ✅ Utility: remove duplicates (unique by productId + modelId + label)
+function dedupeSuggestions(list) {
+  const seen = new Map();
+  list.forEach((item) => {
+    const key = `${item.modelId || ""}-${item.label}`;
+    if (!seen.has(key)) {
+      seen.set(key, item);
+    }
+  });
+  return Array.from(seen.values());
 }
