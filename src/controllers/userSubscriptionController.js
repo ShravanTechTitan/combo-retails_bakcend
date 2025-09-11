@@ -1,6 +1,31 @@
 import UserSubscription from "../models/userSubscriptionModel.js";
 import Subscription from "../models/Subscription.js";
 
+// 🔹 Utility function to calculate endDate
+const calculateEndDate = (fromDate, duration) => {
+  const date = new Date(fromDate);
+  switch (duration) {
+    case "testing":
+      date.setMinutes(date.getMinutes() + 30); // testing ke liye 30 min
+      break;
+    case "perMonth":
+      date.setMonth(date.getMonth() + 1);
+      break;
+    case "sixMonths":
+      date.setMonth(date.getMonth() + 6);
+      break;
+    case "perYear":
+      date.setFullYear(date.getFullYear() + 1);
+      break;
+    case "eighteenMonths":
+      date.setMonth(date.getMonth() + 18);
+      break;
+    default:
+      date.setMonth(date.getMonth() + 1); // fallback: 1 month
+  }
+  return date;
+};
+
 // ✅ Subscribe user to a plan
 export const subscribeUser = async (req, res) => {
   try {
@@ -12,7 +37,7 @@ export const subscribeUser = async (req, res) => {
 
     const today = new Date();
 
-    // Check for existing active subscription
+    // check for existing active subscription
     let existingSub = await UserSubscription.findOne({
       user: userId,
       plan: planId,
@@ -20,34 +45,9 @@ export const subscribeUser = async (req, res) => {
       endDate: { $gte: today },
     });
 
-    let startDate = today;
     let endDate;
-
-    const calculateEndDate = (fromDate, duration) => {
-      let date = new Date(fromDate);
-      switch (duration) {
-        case "testing":
-          date.setMinutes(date.getMonth()+1);
-        case "perMonth":
-          date.setMonth(date.getMonth() + 1);
-          break;
-        case "sixMonths":
-          date.setMonth(date.getMonth() + 6);
-          break;
-        case "perYear":
-          date.setFullYear(date.getFullYear() + 1);
-          break;
-        case "eighteenMonths":
-          date.setMonth(date.getMonth() + 18);
-          break;
-        default:
-          date.setMonth(date.getMonth() + 1);
-      }
-      return date;
-    };
-
     if (existingSub) {
-      // Extend subscription from existing endDate
+      // extend subscription
       endDate = calculateEndDate(existingSub.endDate, plan.duration);
       existingSub.endDate = endDate;
       await existingSub.save();
@@ -56,34 +56,32 @@ export const subscribeUser = async (req, res) => {
         message: "Subscription extended successfully",
         subscription: existingSub,
       });
-    } else {
-      // Create new subscription
-      endDate = calculateEndDate(startDate, plan.duration);
-
-      const newSub = new UserSubscription({
-        user: userId,
-        plan: planId,
-        startDate,
-        endDate,
-        status: "active",
-      });
-
-      await newSub.save();
-
-      return res.status(201).json({
-        message: "New subscription created successfully",
-        subscription: newSub,
-      });
     }
+
+    // new subscription
+    endDate = calculateEndDate(today, plan.duration);
+    const newSub = new UserSubscription({
+      user: userId,
+      plan: planId,
+      startDate: today,
+      endDate,
+      status: "active",
+    });
+
+    await newSub.save();
+    res.status(201).json({
+      message: "New subscription created successfully",
+      subscription: newSub,
+    });
   } catch (err) {
     console.error("Subscribe error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-// ✅ Admin: Get only ACTIVE subscriptions
+
+// ✅ Admin: Get subscriptions with status
 export const getAllUserSubscriptionsWithStatus = async (req, res) => {
   try {
-    // Fetch all subscriptions with user + plan info
     const subs = await UserSubscription.find()
       .populate("user", "name email")
       .populate("plan", "name price duration type")
@@ -91,16 +89,14 @@ export const getAllUserSubscriptionsWithStatus = async (req, res) => {
 
     const today = new Date();
 
-    // Map and classify each subscription
     const data = subs.map((sub) => {
-      let statusLabel = sub.status; // active/inactive
+      let statusLabel = sub.status;
       let daysRemaining = null;
 
       if (sub.endDate) {
         const diffTime = new Date(sub.endDate) - today;
         daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        // mark as expired if endDate passed
         if (diffTime < 0) statusLabel = "expired";
       }
 
@@ -117,52 +113,53 @@ export const getAllUserSubscriptionsWithStatus = async (req, res) => {
 
     res.json(data);
   } catch (err) {
-    console.error(err);
+    console.error("Get subs error:", err);
     res.status(500).json({
-      message: "Error fetching all subscriptions",
+      message: "Error fetching subscriptions",
       error: err.message,
     });
   }
 };
 
-// ✅ User: Get my subscriptions (all, active + expired)
+// ✅ User: Get my subscriptions
 export const getMySubscriptions = async (req, res) => {
   try {
     const { userId } = req.params;
-    const subs = await UserSubscription.find({ user: userId })
-      .populate("plan", "name price duration type");
-
+    const subs = await UserSubscription.find({ user: userId }).populate(
+      "plan",
+      "name price duration type"
+    );
     res.json(subs);
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error fetching subscriptions", error: err.message });
+    console.error("Get my subs error:", err);
+    res.status(500).json({
+      message: "Error fetching subscriptions",
+      error: err.message,
+    });
   }
 };
 
-// ✅ Delete a subscription (Admin use)
+// ✅ Delete a subscription
 export const deleteUserSubscription = async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await UserSubscription.findByIdAndDelete(id);
-
-    if (!deleted) {
-      return res.status(404).json({ message: "Subscription not found" });
-    }
+    if (!deleted) return res.status(404).json({ message: "Subscription not found" });
 
     res.json({ message: "Subscription deleted successfully" });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error deleting subscription", error: err.message });
+    console.error("Delete sub error:", err);
+    res.status(500).json({
+      message: "Error deleting subscription",
+      error: err.message,
+    });
   }
 };
 
-// Toggle subscription active status
+// ✅ Toggle active/inactive status
 export const toggleSubscriptionStatus = async (req, res) => {
   try {
     const { id } = req.params;
-
     const sub = await UserSubscription.findById(id);
     if (!sub) return res.status(404).json({ message: "Subscription not found" });
 
@@ -171,8 +168,7 @@ export const toggleSubscriptionStatus = async (req, res) => {
 
     res.status(200).json({ message: "Status updated", subscription: sub });
   } catch (err) {
-    console.error(err);
+    console.error("Toggle status error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
