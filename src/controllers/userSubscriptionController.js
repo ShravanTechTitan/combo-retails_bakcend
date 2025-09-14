@@ -1,12 +1,13 @@
 import UserSubscription from "../models/userSubscriptionModel.js";
 import Subscription from "../models/Subscription.js";
 
-// 🔹 Utility function to calculate endDate
+// 🔹 Utility function: calculate end date
 const calculateEndDate = (fromDate, duration) => {
   const date = new Date(fromDate);
+
   switch (duration) {
     case "testing":
-      date.setMinutes(date.getMinutes() + 30); // testing ke liye 30 min
+      date.setMinutes(date.getMinutes() + 30);
       break;
     case "perMonth":
       date.setMonth(date.getMonth() + 1);
@@ -21,65 +22,70 @@ const calculateEndDate = (fromDate, duration) => {
       date.setMonth(date.getMonth() + 18);
       break;
     default:
-      date.setMonth(date.getMonth() + 1); // fallback: 1 month
+      date.setMonth(date.getMonth() + 1); // fallback
   }
+
   return date;
 };
 
-// ✅ Subscribe user to a plan
+// 🔹 Subscribe user
 export const subscribeUser = async (req, res) => {
   try {
-    const { planId } = req.params;
-    const { userId } = req.body;
+    const { planId, payment } = req.body; 
+    // payment = { razorpay_order_id, razorpay_payment_id, razorpay_signature }
 
+    // 1️⃣ Verify payment first
+    const crypto = require("crypto");
+    const body = payment.razorpay_order_id + "|" + payment.razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    if (expectedSignature !== payment.razorpay_signature) {
+      return res.status(400).json({ success: false, message: "Payment verification failed" });
+    }
+
+    // 2️⃣ Proceed with subscription activation
     const plan = await Subscription.findById(planId);
     if (!plan) return res.status(404).json({ message: "Plan not found" });
 
     const today = new Date();
-
-    // check for existing active subscription
     let existingSub = await UserSubscription.findOne({
-      user: userId,
+      user: req.body.userId,
       plan: planId,
       status: "active",
       endDate: { $gte: today },
     });
 
-    let endDate;
+    let endDate = existingSub
+      ? calculateEndDate(existingSub.endDate, plan.duration)
+      : calculateEndDate(today, plan.duration);
+
     if (existingSub) {
-      // extend subscription
-      endDate = calculateEndDate(existingSub.endDate, plan.duration);
       existingSub.endDate = endDate;
       await existingSub.save();
-
-      return res.status(200).json({
-        message: "Subscription extended successfully",
-        subscription: existingSub,
-      });
+      return res.status(200).json({ message: "Subscription extended", subscription: existingSub });
     }
 
-    // new subscription
-    endDate = calculateEndDate(today, plan.duration);
     const newSub = new UserSubscription({
-      user: userId,
+      user: req.body.userId,
       plan: planId,
       startDate: today,
       endDate,
       status: "active",
     });
-
     await newSub.save();
-    res.status(201).json({
-      message: "New subscription created successfully",
-      subscription: newSub,
-    });
+
+    res.status(201).json({ message: "Subscription created", subscription: newSub });
   } catch (err) {
-    console.error("Subscribe error:", err);
+    console.error(err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-// ✅ Admin: Get subscriptions with status
+
+// 🔹 Admin: Get all user subscriptions
 export const getAllUserSubscriptionsWithStatus = async (req, res) => {
   try {
     const subs = await UserSubscription.find()
@@ -121,7 +127,7 @@ export const getAllUserSubscriptionsWithStatus = async (req, res) => {
   }
 };
 
-// ✅ User: Get my subscriptions
+// 🔹 User: Get my subscriptions
 export const getMySubscriptions = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -139,11 +145,12 @@ export const getMySubscriptions = async (req, res) => {
   }
 };
 
-// ✅ Delete a subscription
+// 🔹 Delete a user subscription
 export const deleteUserSubscription = async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await UserSubscription.findByIdAndDelete(id);
+
     if (!deleted) return res.status(404).json({ message: "Subscription not found" });
 
     res.json({ message: "Subscription deleted successfully" });
@@ -156,11 +163,12 @@ export const deleteUserSubscription = async (req, res) => {
   }
 };
 
-// ✅ Toggle active/inactive status
+// 🔹 Toggle status
 export const toggleSubscriptionStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const sub = await UserSubscription.findById(id);
+
     if (!sub) return res.status(404).json({ message: "Subscription not found" });
 
     sub.status = sub.status === "active" ? "inactive" : "active";

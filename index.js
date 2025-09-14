@@ -1,5 +1,6 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
 import cors from "cors";
 import connectDB from "./src/config/db.js";
 
@@ -13,10 +14,14 @@ import searchRoutes from "./src/routes/searchRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import subscriptionRoutes from "./src/routes/subscriptions.js";
 import userSubscriptionRoutes from "./src/routes/userSubscriptionRoutes.js";
+import paymentRoutes from "./src/routes/payment.js";
+console.log("Razorpay Key ID:", process.env.RAZORPAY_KEY_ID);
+console.log("Razorpay Secret:", process.env.RAZORPAY_KEY_SECRET);
+
+
  
 
 
-dotenv.config();
 
 const app = express();
 
@@ -41,6 +46,8 @@ app.use("/api/", searchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/user-subscriptions", userSubscriptionRoutes);
+app.use("/api/payments", paymentRoutes);
+
 
 
 // Test routes
