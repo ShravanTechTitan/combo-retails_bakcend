@@ -5,7 +5,7 @@ import cors from "cors";
 import connectDB from "./src/config/db.js";
 console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
 console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
-
+console.log("MONGO_URL:", process.env.RAZORPAY_KEY_SECRET)
 
 import userRoutes from "./src/routes/user.js";
 import productRoutes from "./src/routes/productRoutes.js";
