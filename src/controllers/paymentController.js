@@ -19,6 +19,8 @@ const getRazorpayInstance = () => {
 // 🔹 Create Razorpay Order
 export const createOrder = async (req, res) => {
   const { planId } = req.body;
+  console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
+  console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
 
   if (!planId || !mongoose.Types.ObjectId.isValid(planId)) {
     return res.status(400).json({ message: "Invalid planId" });
@@ -31,7 +33,7 @@ export const createOrder = async (req, res) => {
     const razorpay = getRazorpayInstance();
 
     const shortPlanId = planId.slice(-6); // last 6 chars
-const receipt = `rcpt_${shortPlanId}_${Date.now()}`.slice(0, 40);
+    const receipt = `rcpt_${shortPlanId}_${Date.now()}`.slice(0, 40);
     const order = await razorpay.orders.create({
       amount: plan.price * 100, // ₹ to paise
       currency: "INR",
