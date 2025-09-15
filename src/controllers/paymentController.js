@@ -19,8 +19,6 @@ const getRazorpayInstance = () => {
 // 🔹 Create Razorpay Order
 export const createOrder = async (req, res) => {
   const { planId } = req.body;
-  console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
-  console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
 
   if (!planId || !mongoose.Types.ObjectId.isValid(planId)) {
     return res.status(400).json({ message: "Invalid planId" });
@@ -109,19 +107,32 @@ export const verifyPaymentAndSubscribe = async (req, res) => {
       ? calculateEndDate(existingSub.endDate, plan.duration)
       : calculateEndDate(today, plan.duration);
 
-    if (existingSub) {
-      existingSub.endDate = endDate;
-      await existingSub.save();
-      return res.status(200).json({ message: "Subscription extended", subscription: existingSub });
-    }
+ if (existingSub) {
+  existingSub.endDate = endDate;
+  existingSub.payments.push({
+    orderId: razorpay_order_id,
+    paymentId: razorpay_payment_id,
+    signature: razorpay_signature,
+    amount: plan.price,
+  });
+  await existingSub.save();
+  return res.status(200).json({ message: "Subscription extended", subscription: existingSub });
+}
 
-    const newSub = new UserSubscription({
-      user: userId,
-      plan: planId,
-      startDate: today,
-      endDate,
-      status: "active",
-    });
+const newSub = new UserSubscription({
+  user: userId,
+  plan: planId,
+  startDate: today,
+  endDate,
+  status: "active",
+  payments: [{
+    orderId: razorpay_order_id,
+    paymentId: razorpay_payment_id,
+    signature: razorpay_signature,
+    amount: plan.price,
+  }],
+});
+
 
     await newSub.save();
     res.status(201).json({ message: "Subscription activated", subscription: newSub });

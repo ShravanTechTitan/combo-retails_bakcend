@@ -131,11 +131,19 @@ export const getAllUserSubscriptionsWithStatus = async (req, res) => {
 export const getMySubscriptions = async (req, res) => {
   try {
     const { userId } = req.params;
-    const subs = await UserSubscription.find({ user: userId }).populate(
-      "plan",
-      "name price duration type"
-    );
-    res.json(subs);
+
+    // Saare subs lao with latest first
+    const subs = await UserSubscription.find({ user: userId })
+      .populate("plan", "name price duration type")
+      .sort({ createdAt: -1 }); // newest first
+
+    // active subscription filter
+    const activeSub = subs.find((s) => s.status === "active");
+
+    res.json({
+      activeSubscription: activeSub || null,
+      subscriptions: subs,
+    });
   } catch (err) {
     console.error("Get my subs error:", err);
     res.status(500).json({
@@ -144,6 +152,7 @@ export const getMySubscriptions = async (req, res) => {
     });
   }
 };
+
 
 // 🔹 Delete a user subscription
 export const deleteUserSubscription = async (req, res) => {
