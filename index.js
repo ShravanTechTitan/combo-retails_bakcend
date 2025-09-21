@@ -18,11 +18,6 @@ import userSubscriptionRoutes from "./src/routes/userSubscriptionRoutes.js";
 import paymentRoutes from "./src/routes/payment.js";
 
 
-
- 
-
-
-
 const app = express();
 
 // Connect to DB once
@@ -31,7 +26,7 @@ connectDB().then(() => console.log("MongoDB connected ✅"))
 
 // Middlewares
 app.use(cors({
-  cors:"https://www.universalcombo.com"
+  cors:{}
 }));
 app.use(express.json());
 
