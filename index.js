@@ -25,8 +25,13 @@ connectDB().then(() => console.log("MongoDB connected ✅"))
            .catch(err => console.error("DB connection error:", err));
 
 // Middlewares
-import cors from "cors";
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ 
+  origin: [
+    "http://localhost:5173",
+    "https://mellifluous-cendol-f4d125.netlify.app"
+  ],
+  credentials: true
+}));
 
 app.use(express.json());
 
