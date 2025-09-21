@@ -25,9 +25,9 @@ connectDB().then(() => console.log("MongoDB connected ✅"))
            .catch(err => console.error("DB connection error:", err));
 
 // Middlewares
-app.use(cors({
-  cors:{}
-}));
+import cors from "cors";
+app.use(cors({ origin: "http://localhost:5173" }));
+
 app.use(express.json());
 
 // Routes
