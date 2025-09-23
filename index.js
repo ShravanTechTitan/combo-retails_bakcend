@@ -28,7 +28,8 @@ connectDB().then(() => console.log("MongoDB connected ✅"))
 app.use(cors({ 
   origin: [
     "http://localhost:5173",
-    "https://mellifluous-cendol-f4d125.netlify.app"
+    "https://mellifluous-cendol-f4d125.netlify.app",
+    "https://www.universalcombo.com/",
   ],
   credentials: true
 }));
