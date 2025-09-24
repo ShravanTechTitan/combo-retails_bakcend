@@ -29,8 +29,8 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://mellifluous-cendol-f4d125.netlify.app",
-    "https://www.universalcombo.com/",
-  ],
+    "https://www.universalcombo.com",
+    
   credentials: true
 }));
 
