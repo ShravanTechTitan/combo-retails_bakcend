@@ -29,6 +29,7 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://mellifluous-cendol-f4d125.netlify.app",
+    "https://combo-retail-de67-4jdffuidv-shravan-kumars-projects-eeb86419.vercel.app",
     "https://www.universalcombo.com",
   ],
   credentials: true
