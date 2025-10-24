@@ -32,6 +32,7 @@ export const updateCategory = async (req, res) => {
   try {
     const category = await PartCategory.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(category);
+    
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

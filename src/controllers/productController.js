@@ -45,7 +45,7 @@ export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(id)
       .populate("brandIds", "name")
-      .populate("partCategoryId", "name")
+      .populate("partCategoryId", "name","icon")
       .populate("modelIds", "name");
 
     if (!product) {
@@ -66,7 +66,7 @@ export const getProductByBrandId = async (req, res) => {
 
     const products = await Product.find({ brandIds: brandId })
       .populate("brandIds", "name")
-      .populate("partCategoryId", "name")
+      .populate("partCategoryId", "name icon")
       .populate("modelIds", "name");
 
     if (!products || products.length === 0) {
