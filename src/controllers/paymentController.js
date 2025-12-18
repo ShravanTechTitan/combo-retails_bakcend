@@ -83,7 +83,7 @@ export const verifyPaymentAndSubscribe = async (req, res) => {
       const date = new Date(fromDate);
       switch (duration) {
         case "testing":
-          date.setMinutes(date.getMinutes() + 30);
+          date.setDate(date.getDate() + 7); // 7 days
           break;
         case "perMonth":
           date.setMonth(date.getMonth() + 1);

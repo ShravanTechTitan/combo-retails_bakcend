@@ -16,6 +16,7 @@ import adminRoutes from "./src/routes/adminRoutes.js";
 import subscriptionRoutes from "./src/routes/subscriptions.js";
 import userSubscriptionRoutes from "./src/routes/userSubscriptionRoutes.js";
 import paymentRoutes from "./src/routes/payment.js";
+import blogRoutes from "./src/routes/blogRoutes.js";
 
 
 const app = express();
@@ -60,6 +61,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/user-subscriptions", userSubscriptionRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/blogs", blogRoutes);
 
 
 

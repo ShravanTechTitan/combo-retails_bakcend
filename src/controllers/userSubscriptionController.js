@@ -1,5 +1,6 @@
 import UserSubscription from "../models/userSubscriptionModel.js";
 import Subscription from "../models/Subscription.js";
+import crypto from "crypto";
 
 // 🔹 Utility function: calculate end date
 const calculateEndDate = (fromDate, duration) => {
@@ -7,7 +8,7 @@ const calculateEndDate = (fromDate, duration) => {
 
   switch (duration) {
     case "testing":
-      date.setMinutes(date.getMinutes() + 30);
+      date.setDate(date.getDate() + 7); // 7 days
       break;
     case "perMonth":
       date.setMonth(date.getMonth() + 1);
@@ -35,7 +36,6 @@ export const subscribeUser = async (req, res) => {
     // payment = { razorpay_order_id, razorpay_payment_id, razorpay_signature }
 
     // 1️⃣ Verify payment first
-    const crypto = require("crypto");
     const body = payment.razorpay_order_id + "|" + payment.razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -64,6 +64,12 @@ export const subscribeUser = async (req, res) => {
 
     if (existingSub) {
       existingSub.endDate = endDate;
+      existingSub.payments.push({
+        orderId: payment.razorpay_order_id,
+        paymentId: payment.razorpay_payment_id,
+        signature: payment.razorpay_signature,
+        amount: plan.price,
+      });
       await existingSub.save();
       return res.status(200).json({ message: "Subscription extended", subscription: existingSub });
     }
@@ -74,6 +80,12 @@ export const subscribeUser = async (req, res) => {
       startDate: today,
       endDate,
       status: "active",
+      payments: [{
+        orderId: payment.razorpay_order_id,
+        paymentId: payment.razorpay_payment_id,
+        signature: payment.razorpay_signature,
+        amount: plan.price,
+      }],
     });
     await newSub.save();
 
