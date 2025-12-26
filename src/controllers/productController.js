@@ -26,14 +26,48 @@ export const createProduct = async (req, res) => {
 };
 
 // Get all Products
+// Helper function for pagination
+const paginate = (page = 1, limit = 10) => {
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  return { skip, limit: parseInt(limit) };
+};
+
 export const getProducts = async (req, res) => {
   try {
-    const products = await Product.find()
-      .populate("brandIds", "name")
-      .populate("partCategoryId", "name")
-      .populate("modelIds", "name");
+    const { page = 1, limit = 50, search, brandId, categoryId } = req.query;
+    const { skip, limit: limitNum } = paginate(page, limit);
+    
+    // Build query
+    const query = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { tags: { $in: [new RegExp(search, "i")] } },
+      ];
+    }
+    if (brandId) query.brandIds = brandId;
+    if (categoryId) query.partCategoryId = categoryId;
+    
+    const [products, total] = await Promise.all([
+      Product.find(query)
+        .populate("brandIds", "name")
+        .populate("partCategoryId", "name")
+        .populate("modelIds", "name")
+        .skip(skip)
+        .limit(limitNum)
+        .sort({ createdAt: -1 }),
+      Product.countDocuments(query),
+    ]);
 
-    res.status(200).json(products);
+    res.status(200).json({
+      products,
+      pagination: {
+        page: parseInt(page),
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

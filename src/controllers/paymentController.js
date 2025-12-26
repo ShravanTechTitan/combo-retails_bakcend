@@ -146,6 +146,24 @@ const newSub = new UserSubscription({
 
 
     await newSub.save();
+    
+    // Send payment receipt email
+    try {
+      const { sendPaymentReceipt } = await import("../utils/emailService.js");
+      const user = await UserSubscription.findById(newSub._id).populate("user", "email name");
+      if (user && user.user) {
+        sendPaymentReceipt(
+          user.user.email,
+          user.user.name,
+          plan.price,
+          plan.name,
+          razorpay_order_id
+        ).catch(err => console.error("Failed to send receipt email:", err));
+      }
+    } catch (emailErr) {
+      console.error("Email service error:", emailErr);
+    }
+    
     res.status(201).json({ message: "Subscription activated", subscription: newSub });
   } catch (err) {
     console.error("Payment verification error:", err);

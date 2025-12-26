@@ -7,4 +7,5 @@ const deviceCategorySchema = new mongoose.Schema({
 
 
 
-export default mongoose.model("DeviceCategory", deviceCategorySchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.DeviceCategory || mongoose.model("DeviceCategory", deviceCategorySchema);

@@ -91,6 +91,25 @@ export const subscribeUser = async (req, res) => {
       }],
     });
     await newSub.save();
+    
+    // Send payment receipt email for paid plans
+    if (plan.price > 0) {
+      try {
+        const { sendPaymentReceipt } = await import("../utils/emailService.js");
+        const populatedSub = await UserSubscription.findById(newSub._id).populate("user", "email name");
+        if (populatedSub && populatedSub.user) {
+          sendPaymentReceipt(
+            populatedSub.user.email,
+            populatedSub.user.name,
+            plan.price,
+            plan.name,
+            payment.razorpay_order_id
+          ).catch(err => console.error("Failed to send receipt email:", err));
+        }
+      } catch (emailErr) {
+        console.error("Email service error:", emailErr);
+      }
+    }
 
     res.status(201).json({ message: "Subscription created", subscription: newSub });
   } catch (err) {
@@ -130,6 +149,13 @@ export const getAllUserSubscriptionsWithStatus = async (req, res) => {
         status: statusLabel,
         daysRemaining: daysRemaining >= 0 ? daysRemaining : 0,
       };
+      
+      // Create notification for expiring subscriptions
+      if (daysRemaining > 0 && daysRemaining <= 7 && sub.user) {
+        createExpiryNotification(sub.user._id, daysRemaining, sub.plan?.name || "subscription").catch(
+          err => console.error("Notification error:", err)
+        );
+      }
     });
 
     res.json(data);

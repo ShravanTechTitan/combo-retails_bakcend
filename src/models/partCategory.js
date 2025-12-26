@@ -8,4 +8,5 @@ const partCategorySchema = new mongoose.Schema({
 
 
 
-export default mongoose.model("PartCategory", partCategorySchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.PartCategory || mongoose.model("PartCategory", partCategorySchema);

@@ -13,4 +13,5 @@ const subscriptionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model("Subscription", subscriptionSchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.Subscription || mongoose.model("Subscription", subscriptionSchema);

@@ -7,6 +7,7 @@ import {
   activateUserSubscription,
   getTotalRevenue,
   getTrialUsersCount,
+  getAnalytics,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -29,5 +30,8 @@ router.get("/revenue", verifyAuth, verifyRole(["admin", "superadmin"]), getTotal
 
 // ✅ Admin & Superadmin: Get trial users count
 router.get("/trial-users", verifyAuth, verifyRole(["admin", "superadmin"]), getTrialUsersCount);
+
+// ✅ Admin & Superadmin: Get analytics data
+router.get("/analytics", verifyAuth, verifyRole(["admin", "superadmin"]), getAnalytics);
 
 export default router;

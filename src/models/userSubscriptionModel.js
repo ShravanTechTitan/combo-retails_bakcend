@@ -19,4 +19,5 @@ const userSubscriptionSchema = new mongoose.Schema({
   payments: [paymentSchema],
 }, { timestamps: true });
 
-export default mongoose.model("UserSubscription", userSubscriptionSchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.UserSubscription || mongoose.model("UserSubscription", userSubscriptionSchema);

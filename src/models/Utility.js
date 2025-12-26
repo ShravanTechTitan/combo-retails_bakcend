@@ -6,4 +6,5 @@ const utilitySchema = new mongoose.Schema({
   formula: String // optional for configs
 }, { timestamps: true });
 
-export default mongoose.model("Utility", utilitySchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.Utility || mongoose.model("Utility", utilitySchema);

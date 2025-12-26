@@ -6,4 +6,5 @@ const brandSchema = new mongoose.Schema({
   deviceCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: "DeviceCategory" },
 }, { timestamps: true });
 
-export default mongoose.model("Brand", brandSchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.Brand || mongoose.model("Brand", brandSchema);

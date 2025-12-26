@@ -1,4 +1,5 @@
 import Subscription from "../models/Subscription.js";
+import { getCache, setCache } from "../utils/cache.js";
 
 // 🔹 Get all subscriptions
 export const getSubscriptions = async (req, res) => {
@@ -6,7 +7,19 @@ export const getSubscriptions = async (req, res) => {
     // If admin query param is true, return all subscriptions (for admin dashboard)
     // Otherwise, only return active subscriptions (for users)
     const query = req.query.admin === "true" ? {} : { active: true };
+    const cacheKey = `subscriptions_${req.query.admin || "user"}`;
+    
+    // Try cache first
+    const cached = getCache(cacheKey);
+    if (cached) {
+      return res.status(200).json(cached);
+    }
+    
     const subscriptions = await Subscription.find(query).sort({ createdAt: -1 });
+    
+    // Cache the result
+    setCache(cacheKey, subscriptions, 2 * 60 * 1000); // 2 minutes cache
+    
     res.status(200).json(subscriptions);
   } catch (err) {
     console.error("Get subscriptions error:", err);

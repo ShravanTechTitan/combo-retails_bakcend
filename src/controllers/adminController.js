@@ -123,3 +123,83 @@ export const activateUserSubscription = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// 🟢 Admin & Superadmin: Get Analytics Data
+export const getAnalytics = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    // Default to last 30 days if no date range provided
+    const end = endDate ? new Date(endDate) : new Date();
+    const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    // Revenue by date
+    const subscriptions = await UserSubscription.find({
+      createdAt: { $gte: start, $lte: end }
+    }).populate("plan", "name price duration");
+    
+    // Group revenue by date
+    const revenueByDate = {};
+    subscriptions.forEach((sub) => {
+      if (sub.payments && sub.payments.length > 0) {
+        sub.payments.forEach((payment) => {
+          if (payment.amount && payment.amount > 0) {
+            const date = new Date(payment.date || sub.createdAt).toISOString().split('T')[0];
+            revenueByDate[date] = (revenueByDate[date] || 0) + payment.amount;
+          }
+        });
+      }
+    });
+    
+    // User growth by date
+    const users = await User.find({
+      createdAt: { $gte: start, $lte: end }
+    });
+    
+    const userGrowthByDate = {};
+    users.forEach((user) => {
+      const date = new Date(user.createdAt).toISOString().split('T')[0];
+      userGrowthByDate[date] = (userGrowthByDate[date] || 0) + 1;
+    });
+    
+    // Plan popularity
+    const planStats = {};
+    subscriptions.forEach((sub) => {
+      if (sub.plan) {
+        const planName = sub.plan.name || sub.plan.duration;
+        planStats[planName] = (planStats[planName] || 0) + 1;
+      }
+    });
+    
+    // Subscription conversion (trial to paid)
+    const allSubs = await UserSubscription.find().populate("plan", "duration").populate("user", "_id");
+    const trialUsers = new Set();
+    const paidUsers = new Set();
+    
+    allSubs.forEach((sub) => {
+      if (sub.user && sub.user._id) {
+        const userId = sub.user._id.toString();
+        if (sub.plan && sub.plan.duration === "trial24Hours") {
+          trialUsers.add(userId);
+        } else if (sub.payments && sub.payments.some(p => p.amount > 0)) {
+          paidUsers.add(userId);
+        }
+      }
+    });
+    
+    const conversionRate = trialUsers.size > 0 
+      ? ((paidUsers.size / trialUsers.size) * 100).toFixed(2)
+      : 0;
+    
+    res.json({
+      revenueByDate: Object.entries(revenueByDate).map(([date, amount]) => ({ date, amount })),
+      userGrowthByDate: Object.entries(userGrowthByDate).map(([date, count]) => ({ date, count })),
+      planStats: Object.entries(planStats).map(([plan, count]) => ({ plan, count })),
+      conversionRate: parseFloat(conversionRate),
+      totalTrialUsers: trialUsers.size,
+      totalPaidUsers: paidUsers.size,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

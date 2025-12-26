@@ -8,4 +8,5 @@ const comboSchema = new mongoose.Schema({
   models: [String]
 });
 
-export default mongoose.model("Combo", comboSchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.Combo || mongoose.model("Combo", comboSchema);

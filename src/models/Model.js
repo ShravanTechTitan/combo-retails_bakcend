@@ -10,4 +10,5 @@ const modelSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-export default mongoose.model("Model", modelSchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.Model || mongoose.model("Model", modelSchema);

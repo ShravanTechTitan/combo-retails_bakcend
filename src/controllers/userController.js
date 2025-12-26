@@ -26,6 +26,16 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, number, password: hashedPassword });
 
+    // Send welcome email (non-blocking)
+    try {
+      const { sendWelcomeEmail } = await import("../utils/emailService.js");
+      sendWelcomeEmail(user.email, user.name).catch(err => 
+        console.error("Failed to send welcome email:", err)
+      );
+    } catch (emailErr) {
+      console.error("Email service error:", emailErr);
+    }
+
     res.json({
       id: user._id,
       name: user.name,

@@ -3,6 +3,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import connectDB from "./src/config/db.js";
+import { rateLimiter } from "./src/middleware/rateLimiter.js";
 
 
 import userRoutes from "./src/routes/user.js";
@@ -17,6 +18,11 @@ import subscriptionRoutes from "./src/routes/subscriptions.js";
 import userSubscriptionRoutes from "./src/routes/userSubscriptionRoutes.js";
 import paymentRoutes from "./src/routes/payment.js";
 import blogRoutes from "./src/routes/blogRoutes.js";
+import exportRoutes from "./src/routes/exportRoutes.js";
+import activityRoutes from "./src/routes/activityRoutes.js";
+import sitemapRoutes from "./src/routes/sitemapRoutes.js";
+import invoiceRoutes from "./src/routes/invoiceRoutes.js";
+import notificationRoutes from "./src/routes/notificationRoutes.js";
 
 
 const app = express();
@@ -64,6 +70,9 @@ app.use(cors({
 
 app.use(express.json());
 
+// Rate limiting for API routes
+app.use("/api/", rateLimiter(100, 15 * 60 * 1000)); // 100 requests per 15 minutes
+
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
@@ -77,6 +86,11 @@ app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/user-subscriptions", userSubscriptionRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/blogs", blogRoutes);
+app.use("/api/export", exportRoutes);
+app.use("/api/activity", activityRoutes);
+app.use("/api/invoice", invoiceRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/", sitemapRoutes); // Sitemap and robots.txt at root level
 
 
 
