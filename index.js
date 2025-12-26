@@ -28,6 +28,7 @@ connectDB().then(() => console.log("MongoDB connected ✅"))
 // Middlewares
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://mellifluous-cendol-f4d125.netlify.app",
   "https://combo-retail-de67-4jdffuidv-shravan-kumars-projects-eeb86419.vercel.app",
   "https://www.universalcombo.com"
