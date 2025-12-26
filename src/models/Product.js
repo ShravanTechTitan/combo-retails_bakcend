@@ -17,6 +17,14 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Add indexes for better search performance
+productSchema.index({ name: "text", tags: "text", description: "text" });
+productSchema.index({ brandIds: 1 });
+productSchema.index({ partCategoryId: 1 });
+productSchema.index({ modelIds: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ isTrending: 1 });
+
 // 🔥 Pre-save hook to auto-generate tags
 productSchema.pre("save", async function (next) {
   if (!this.isModified("name") && !this.isModified("modelIds")) return next();
@@ -67,4 +75,5 @@ productSchema.pre("findOneAndUpdate", async function (next) {
 });
 
 
-export default mongoose.model("Product", productSchema);
+// Check if model already exists to prevent overwrite errors during hot reload
+export default mongoose.models.Product || mongoose.model("Product", productSchema);

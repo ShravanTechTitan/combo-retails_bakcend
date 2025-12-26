@@ -5,52 +5,88 @@ export const searchProducts = async (req, res) => {
     const { q } = req.query;
     if (!q) return res.json([]);
 
-    const escapedQuery = escapeRegex(q);
-    const regex = new RegExp(escapedQuery, "i");
+    // Split query into individual words for multi-word search
+    const searchTerms = q.trim().split(/\s+/).filter(t => t.length > 0);
+    const escapedTerms = searchTerms.map(term => escapeRegex(term));
+    
+    // Create regex patterns for each term
+    const regexPatterns = escapedTerms.map(term => new RegExp(term, "i"));
+    const combinedRegex = new RegExp(escapedTerms.join("|"), "i");
 
-    // 1️⃣ Tag matched products
-    let tagMatchedProducts = await Product.find({ tags: { $regex: regex } })
+    // 1️⃣ Tag matched products - check if all terms match in tags
+    let tagMatchedProducts = await Product.find({
+      $or: [
+        { tags: { $in: regexPatterns } },
+        { tags: { $regex: combinedRegex } }
+      ]
+    })
       .populate({ path: "partCategoryId", select: "name" })
-      .limit(50);
+      .populate({ path: "modelIds", select: "name" })
+      .populate({ path: "brandIds", select: "name" })
+      .limit(100);
 
     if (tagMatchedProducts.length > 0) {
       let tagSuggestions = [];
       tagMatchedProducts.forEach((p) => {
-        const matchedTags = p.tags.filter((t) => regex.test(t));
-
-        matchedTags.forEach((tag) => {
-          tagSuggestions.push({
-            label: `${tag} - Universal ${p.partCategoryId?.name || ""}`,
-            productId: p._id,
-            category: p.partCategoryId?.name || "",
-            matchType: "tag",
-          });
+        // Check if all search terms are found in tags, brand, or model
+        const allTermsMatch = searchTerms.every(term => {
+          const termLower = term.toLowerCase();
+          const tagsLower = (p.tags || []).join(" ").toLowerCase();
+          const brandNames = (p.brandIds || []).map(b => b.name?.toLowerCase() || "").join(" ");
+          const modelNames = (p.modelIds || []).map(m => m.name?.toLowerCase() || "").join(" ");
+          const nameLower = (p.name || "").toLowerCase();
+          
+          return tagsLower.includes(termLower) || 
+                 brandNames.includes(termLower) || 
+                 modelNames.includes(termLower) ||
+                 nameLower.includes(termLower);
         });
+
+        if (allTermsMatch && p.modelIds && p.modelIds.length > 0) {
+          p.modelIds.forEach((m) => {
+            const firstModel = p.modelIds[0];
+            tagSuggestions.push({
+              label: `${p.name || ""} ${firstModel.name || ""} - Universal ${p.partCategoryId?.name || ""}`,
+              productId: p._id,
+              modelId: m._id,
+              category: p.partCategoryId?.name || "",
+              matchType: "tag",
+            });
+          });
+        }
       });
 
-      return res.json(dedupeSuggestions(tagSuggestions));
+      if (tagSuggestions.length > 0) {
+        return res.json(dedupeSuggestions(tagSuggestions));
+      }
     }
 
-    // 2️⃣ Regular search for name, model, brand
+    // 2️⃣ Regular search for name, model, brand - handle multi-word queries
     let products = await Product.find({})
       .populate({ path: "modelIds", select: "name" })
       .populate({ path: "brandIds", select: "name" })
       .populate({ path: "partCategoryId", select: "name" })
-      .limit(50);
+      .limit(100);
 
     let suggestions = [];
 
     products.forEach((p) => {
-      const nameMatch = regex.test(p.name || "");
-      const matchingModels = p.modelIds.filter((m) =>
-        regex.test(m.name || "")
-      );
-      const matchingBrands = p.brandIds.filter((b) =>
-        regex.test(b.name || "")
+      const nameLower = (p.name || "").toLowerCase();
+      const brandNames = (p.brandIds || []).map(b => b.name?.toLowerCase() || "").join(" ");
+      const modelNames = (p.modelIds || []).map(m => m.name?.toLowerCase() || "").join(" ");
+      const tagsLower = (p.tags || []).join(" ").toLowerCase();
+      const allText = `${nameLower} ${brandNames} ${modelNames} ${tagsLower}`.toLowerCase();
+
+      // Check if all search terms are found in the product
+      const allTermsMatch = searchTerms.every(term => 
+        allText.includes(term.toLowerCase())
       );
 
+      if (!allTermsMatch) return;
+
       // Name match → sab models ke saath
-      if (nameMatch) {
+      const nameMatch = searchTerms.some(term => nameLower.includes(term.toLowerCase()));
+      if (nameMatch && p.modelIds && p.modelIds.length > 0) {
         p.modelIds.forEach((m) => {
           suggestions.push({
             label: `${p.name || ""} ${m.name || ""} - Universal ${
@@ -65,7 +101,10 @@ export const searchProducts = async (req, res) => {
       }
 
       // Brand match → sab models ke saath
-      if (matchingBrands.length > 0) {
+      const matchingBrands = p.brandIds.filter((b) =>
+        searchTerms.some(term => b.name?.toLowerCase().includes(term.toLowerCase()))
+      );
+      if (matchingBrands.length > 0 && p.modelIds && p.modelIds.length > 0) {
         p.modelIds.forEach((m) => {
           suggestions.push({
             label: `${matchingBrands[0].name || ""} ${m.name || ""} - Universal ${
@@ -80,6 +119,9 @@ export const searchProducts = async (req, res) => {
       }
 
       // Model match → sirf matching models
+      const matchingModels = p.modelIds.filter((m) =>
+        searchTerms.some(term => m.name?.toLowerCase().includes(term.toLowerCase()))
+      );
       matchingModels.forEach((m) => {
         suggestions.push({
           label: `${p.name || ""} ${m.name || ""} - Universal ${

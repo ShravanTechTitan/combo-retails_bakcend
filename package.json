@@ -17,7 +17,9 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
+    "nodemailer": "^7.0.12",
     "razorpay": "^2.9.6",
+    "recharts": "^3.6.0",
     "serverless-http": "^3.2.0"
   }
 }

@@ -13,6 +13,7 @@ import deviceCategoryRoutes from "./src/routes/deviceCategoryRoutes.js";
 import brandRoutes from "./src/routes/brandRoutes.js";
 import modelRoutes from "./src/routes/modelRoutes.js";
 import searchRoutes from "./src/routes/searchRoutes.js";
+import advancedSearchRoutes from "./src/routes/advancedSearchRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import subscriptionRoutes from "./src/routes/subscriptions.js";
 import userSubscriptionRoutes from "./src/routes/userSubscriptionRoutes.js";
@@ -23,6 +24,7 @@ import activityRoutes from "./src/routes/activityRoutes.js";
 import sitemapRoutes from "./src/routes/sitemapRoutes.js";
 import invoiceRoutes from "./src/routes/invoiceRoutes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
+import testEmailRoutes from "./src/routes/testEmailRoutes.js";
 
 
 const app = express();
@@ -70,8 +72,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// Rate limiting for API routes
-app.use("/api/", rateLimiter(100, 15 * 60 * 1000)); // 100 requests per 15 minutes
+// Rate limiting for API routes (increased for development)
+app.use("/api/", rateLimiter(200, 15 * 60 * 1000)); // 200 requests per 15 minutes
 
 // Routes
 app.use("/api/users", userRoutes);
@@ -81,6 +83,7 @@ app.use("/api/deviceCategories", deviceCategoryRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/models", modelRoutes);
 app.use("/api/", searchRoutes);
+app.use("/api/search", advancedSearchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/user-subscriptions", userSubscriptionRoutes);
@@ -90,6 +93,7 @@ app.use("/api/export", exportRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/invoice", invoiceRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/test-email", testEmailRoutes);
 app.use("/", sitemapRoutes); // Sitemap and robots.txt at root level
 
 
