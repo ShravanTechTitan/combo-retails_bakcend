@@ -31,6 +31,7 @@ const allowedOrigins = [
   "http://localhost:5174",
   "https://mellifluous-cendol-f4d125.netlify.app",
   "https://combo-retail-de67-4jdffuidv-shravan-kumars-projects-eeb86419.vercel.app",
+  "https://combo-retail-de67-jdvqg7qhq-shravan-kumars-projects-eeb86419.vercel.app",
   "https://www.universalcombo.com"
 ];
 
@@ -38,11 +39,24 @@ app.use(cors({
   origin: function(origin, callback) {
     // allow requests with no origin (like Postman)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
-      return callback(new Error(msg), false);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
     }
-    return callback(null, true);
+    
+    // Allow all Vercel preview deployments (pattern matching)
+    if (origin.includes('vercel.app') || origin.includes('vercel-demo.com')) {
+      return callback(null, true);
+    }
+    
+    // Allow all Netlify deployments (pattern matching)
+    if (origin.includes('netlify.app') || origin.includes('netlify.com')) {
+      return callback(null, true);
+    }
+    
+    const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+    return callback(new Error(msg), false);
   },
   credentials: true
 }));

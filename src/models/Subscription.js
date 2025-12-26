@@ -5,7 +5,7 @@ const subscriptionSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   duration: {
     type: String,
-    enum: ["perMonth", "sixMonths", "perYear", "eighteenMonths","testing"],
+    enum: ["perMonth", "sixMonths", "perYear", "eighteenMonths", "sevenDays", "trial24Hours"],
     default: "perMonth",
     required: true,
   },

@@ -3,7 +3,10 @@ import Subscription from "../models/Subscription.js";
 // 🔹 Get all subscriptions
 export const getSubscriptions = async (req, res) => {
   try {
-    const subscriptions = await Subscription.find().sort({ createdAt: -1 });
+    // If admin query param is true, return all subscriptions (for admin dashboard)
+    // Otherwise, only return active subscriptions (for users)
+    const query = req.query.admin === "true" ? {} : { active: true };
+    const subscriptions = await Subscription.find(query).sort({ createdAt: -1 });
     res.status(200).json(subscriptions);
   } catch (err) {
     console.error("Get subscriptions error:", err);

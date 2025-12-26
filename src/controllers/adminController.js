@@ -1,11 +1,43 @@
 // controllers/adminController.js
 import User from "../models/user.js";
+import UserSubscription from "../models/userSubscriptionModel.js";
 
 // 🟢 Superadmin: Get all users
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password"); // hide password
     res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// 🟢 Admin & Superadmin: Get total subscription revenue
+export const getTotalRevenue = async (req, res) => {
+  try {
+    // Get all subscriptions with payments
+    const subscriptions = await UserSubscription.find().populate("plan", "name price");
+    
+    // Calculate total from all payments
+    let totalAmount = 0;
+    let totalPayments = 0;
+    
+    subscriptions.forEach((sub) => {
+      if (sub.payments && sub.payments.length > 0) {
+        sub.payments.forEach((payment) => {
+          if (payment.amount) {
+            totalAmount += payment.amount;
+            totalPayments += 1;
+          }
+        });
+      }
+    });
+    
+    res.json({
+      totalRevenue: totalAmount,
+      totalPayments: totalPayments,
+      totalSubscriptions: subscriptions.length,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
