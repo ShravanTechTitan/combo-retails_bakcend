@@ -15,17 +15,18 @@ export const getAllUsers = async (req, res) => {
 // 🟢 Admin & Superadmin: Get total subscription revenue
 export const getTotalRevenue = async (req, res) => {
   try {
-    // Get all subscriptions with payments
-    const subscriptions = await UserSubscription.find().populate("plan", "name price");
+    // Get all subscriptions with payments and plan details
+    const subscriptions = await UserSubscription.find().populate("plan", "name price duration");
     
-    // Calculate total from all payments
+    // Calculate total from all payments (excluding trial plan - ₹0 payments)
     let totalAmount = 0;
     let totalPayments = 0;
     
     subscriptions.forEach((sub) => {
       if (sub.payments && sub.payments.length > 0) {
         sub.payments.forEach((payment) => {
-          if (payment.amount) {
+          // Exclude trial plan (₹0 payments) from revenue
+          if (payment.amount && payment.amount > 0) {
             totalAmount += payment.amount;
             totalPayments += 1;
           }
@@ -37,6 +38,36 @@ export const getTotalRevenue = async (req, res) => {
       totalRevenue: totalAmount,
       totalPayments: totalPayments,
       totalSubscriptions: subscriptions.length,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// 🟢 Admin & Superadmin: Get trial plan users count
+export const getTrialUsersCount = async (req, res) => {
+  try {
+    // Find all subscriptions with trial24Hours plan
+    const trialSubscriptions = await UserSubscription.find()
+      .populate("plan", "duration")
+      .populate("user", "name email");
+    
+    // Filter subscriptions with trial24Hours duration
+    const trialUsers = trialSubscriptions.filter(
+      (sub) => sub.plan && sub.plan.duration === "trial24Hours"
+    );
+    
+    // Get unique users (a user might have multiple trial subscriptions)
+    const uniqueTrialUsers = new Set();
+    trialUsers.forEach((sub) => {
+      if (sub.user && sub.user._id) {
+        uniqueTrialUsers.add(sub.user._id.toString());
+      }
+    });
+    
+    res.json({
+      trialUsersCount: uniqueTrialUsers.size,
+      totalTrialSubscriptions: trialUsers.length,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

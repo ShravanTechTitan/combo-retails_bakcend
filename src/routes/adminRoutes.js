@@ -6,6 +6,7 @@ import {
   updateUserRole,
   activateUserSubscription,
   getTotalRevenue,
+  getTrialUsersCount,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -25,5 +26,8 @@ router.put(
 
 // ✅ Admin & Superadmin: Get total revenue
 router.get("/revenue", verifyAuth, verifyRole(["admin", "superadmin"]), getTotalRevenue);
+
+// ✅ Admin & Superadmin: Get trial users count
+router.get("/trial-users", verifyAuth, verifyRole(["admin", "superadmin"]), getTrialUsersCount);
 
 export default router;
